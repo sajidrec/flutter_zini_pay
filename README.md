@@ -1,0 +1,3 @@
+# zini_app
+
+SKILL ASSESSMENT TASK
