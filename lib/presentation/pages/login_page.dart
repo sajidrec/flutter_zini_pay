@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 import 'package:get/get.dart';
+import 'package:zini_app/presentation/pages/home_page.dart';
 import 'package:zini_app/presentation/state_holders/login_page_controller.dart';
 import 'package:zini_app/presentation/utility/app_colors.dart';
 
@@ -60,84 +62,99 @@ class _LoginPageState extends State<LoginPage> {
   Widget _buildLoginForm() {
     return SizedBox(
       width: double.maxFinite,
-      child: GetBuilder<LoginPageController>(builder: (loginPageController) {
-        return Form(
-          key: _formKey,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const Text(
-                "Email",
-                style: TextStyle(
-                  fontSize: 18,
+      child: GetBuilder<LoginPageController>(
+        builder: (loginPageController) {
+          return Form(
+            key: _formKey,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  "Email",
+                  style: TextStyle(
+                    fontSize: 18,
+                  ),
                 ),
-              ),
-              TextFormField(
-                controller: _emailTEController,
-                enabled: !loginPageController.inProgress,
-                decoration: loginPageController.inProgress
-                    ? InputDecoration(
-                        filled: true,
-                        fillColor: AppColors.disabledBorderBgColor,
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(21),
-                          borderSide: const BorderSide(
-                            style: BorderStyle.none,
-                            width: 0,
+                TextFormField(
+                  controller: _emailTEController,
+                  enabled: !loginPageController.inProgress,
+                  decoration: loginPageController.inProgress
+                      ? InputDecoration(
+                          filled: true,
+                          fillColor: AppColors.disabledBorderBgColor,
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(21),
+                            borderSide: const BorderSide(
+                              style: BorderStyle.none,
+                              width: 0,
+                            ),
                           ),
-                        ),
-                      )
-                    : null,
-              ),
-              const SizedBox(height: 16),
-              const Text(
-                "Api Key",
-                style: TextStyle(
-                  fontSize: 18,
+                        )
+                      : null,
                 ),
-              ),
-              TextFormField(
-                controller: _apiTEController,
-                enabled: !loginPageController.inProgress,
-                decoration: loginPageController.inProgress
-                    ? InputDecoration(
-                        filled: true,
-                        fillColor: AppColors.disabledBorderBgColor,
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(21),
-                          borderSide: const BorderSide(
-                            style: BorderStyle.none,
-                            width: 0,
+                const SizedBox(height: 16),
+                const Text(
+                  "Api Key",
+                  style: TextStyle(
+                    fontSize: 18,
+                  ),
+                ),
+                TextFormField(
+                  controller: _apiTEController,
+                  enabled: !loginPageController.inProgress,
+                  decoration: loginPageController.inProgress
+                      ? InputDecoration(
+                          filled: true,
+                          fillColor: AppColors.disabledBorderBgColor,
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(21),
+                            borderSide: const BorderSide(
+                              style: BorderStyle.none,
+                              width: 0,
+                            ),
                           ),
+                        )
+                      : null,
+                ),
+                const SizedBox(height: 25),
+                SizedBox(
+                  width: double.maxFinite,
+                  child: ElevatedButton(
+                    onPressed: () async {
+                      await loginPageController.signIn(
+                        email: _emailTEController.text.trim(),
+                        apiKey: _apiTEController.text,
+                      );
+
+                      await Fluttertoast.showToast(
+                        msg: loginPageController.loginResponseModel.message ??
+                            "",
+                      );
+
+                      if (loginPageController.loginResponseModel.success ??
+                          false) {
+                        Get.offAll(() => const HomePage());
+                      }
+                    },
+                    child: Padding(
+                      padding: const EdgeInsets.all(12.0),
+                      child: Text(
+                        "Log in",
+                        style: TextStyle(
+                          fontSize: 18,
+                          color: loginPageController.inProgress
+                              ? AppColors.elevatedButtonPressedTextColor
+                              : null,
                         ),
-                      )
-                    : null,
-              ),
-              const SizedBox(height: 25),
-              SizedBox(
-                width: double.maxFinite,
-                child: ElevatedButton(
-                  onPressed: () async {
-                    await loginPageController.signIn();
-                  },
-                  child: Padding(
-                    padding: const EdgeInsets.all(12.0),
-                    child: Text(
-                      "Log in",
-                      style: TextStyle(
-                        fontSize: 18,
-                        color: loginPageController.inProgress
-                            ? AppColors.elevatedButtonPressedTextColor
-                            : null,
                       ),
                     ),
                   ),
                 ),
-              ),
-            ],
-          ),
-        );
-      }),
+              ],
+            ),
+          );
+        },
+      ),
     );
   }
 
