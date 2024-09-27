@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:zini_app/controller_binder.dart';
+import 'package:zini_app/presentation/pages/home_page.dart';
 import 'package:zini_app/presentation/pages/login_page.dart';
 import 'package:zini_app/presentation/utility/app_colors.dart';
 
@@ -13,7 +14,7 @@ class ZiniApp extends StatelessWidget {
       initialBinding: ControllerBinder(),
       theme: _buildThemeData(),
       debugShowCheckedModeBanner: false,
-      home: const LoginPage(),
+      home: const HomePage(),
     );
   }
 

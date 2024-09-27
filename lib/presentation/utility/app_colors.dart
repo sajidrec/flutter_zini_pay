@@ -7,4 +7,6 @@ class AppColors {
   static Color elevatedButtonTextColor = const Color(0xffffffff);
   static Color elevatedButtonPressedTextColor = const Color(0xffd3d3d3);
   static Color disabledBorderBgColor = const Color(0xffd3d3d3);
+  static Color backwardActiveGreen = const Color(0xffe0ffe5);
+  static Color forwardActiveGreen = const Color(0xff4cd964);
 }
