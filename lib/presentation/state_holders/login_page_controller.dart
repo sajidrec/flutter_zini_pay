@@ -9,8 +9,6 @@ class LoginPageController extends GetxController {
     _inProgress = true;
     update();
 
-    await Future.delayed(const Duration(seconds: 2));
-
     _inProgress = false;
     update();
   }
