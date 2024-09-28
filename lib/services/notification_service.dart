@@ -35,6 +35,6 @@ class NotificationService {
     var not = NotificationDetails(
         android: androidPlatformChannelSpecifics,
         iOS: DarwinNotificationDetails());
-    await fln.show(0, title, body, not);
+    await fln.show(id, title, body, not);
   }
 }

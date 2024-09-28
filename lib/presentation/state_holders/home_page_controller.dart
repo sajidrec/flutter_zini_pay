@@ -23,7 +23,8 @@ class HomePageController extends GetxController {
 
     if (_smsSyncActive) {
       await NotificationService.showNotification(
-        title: "Zini",
+        id: 1,
+        title: "zini 1",
         body: "App is running",
         fln: flutterLocalNotificationsPlugin,
       );
