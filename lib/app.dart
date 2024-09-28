@@ -1,11 +1,37 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:zini_app/controller_binder.dart';
 import 'package:zini_app/presentation/pages/home_page.dart';
+import 'package:zini_app/presentation/pages/loading_page.dart';
+import 'package:zini_app/presentation/pages/login_page.dart';
 import 'package:zini_app/presentation/utility/app_colors.dart';
+import 'package:zini_app/presentation/utility/constants.dart';
 
-class ZiniApp extends StatelessWidget {
+class ZiniApp extends StatefulWidget {
   const ZiniApp({super.key});
+
+  @override
+  State<ZiniApp> createState() => _ZiniAppState();
+}
+
+class _ZiniAppState extends State<ZiniApp> {
+  Future<void> _moveToNextPage() async {
+    SharedPreferences sharedPreferences = await SharedPreferences.getInstance();
+    if (sharedPreferences.getBool(Constants.isLoggedInKey) ?? false) {
+      Get.offAll(() => const HomePage());
+    } else {
+      Get.offAll(() => const LoginPage());
+    }
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsFlutterBinding.ensureInitialized().addPostFrameCallback(
+      (timeStamp) async => await _moveToNextPage(),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -13,7 +39,7 @@ class ZiniApp extends StatelessWidget {
       initialBinding: ControllerBinder(),
       theme: _buildThemeData(),
       debugShowCheckedModeBanner: false,
-      home: const HomePage(),
+      home: const LoadingPage(),
     );
   }
 

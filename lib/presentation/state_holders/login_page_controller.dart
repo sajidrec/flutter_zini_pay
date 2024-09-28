@@ -1,7 +1,9 @@
 import 'package:get/get.dart';
 import 'package:dio/dio.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:zini_app/data/models/login_response_model.dart';
 import 'package:zini_app/data/utility/urls.dart';
+import 'package:zini_app/presentation/utility/constants.dart';
 
 class LoginPageController extends GetxController {
   bool _inProgress = false;
@@ -33,6 +35,14 @@ class LoginPageController extends GetxController {
         },
       );
       _loginResponseModel = LoginResponseModel.fromJson(res.data);
+      if (_loginResponseModel.success ?? false) {
+        SharedPreferences sharedPreferences =
+            await SharedPreferences.getInstance();
+        await sharedPreferences.setBool(
+          Constants.isLoggedInKey,
+          true,
+        );
+      }
     } catch (e) {}
 
     _inProgress = false;

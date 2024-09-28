@@ -1,12 +1,34 @@
 import 'dart:math';
-
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:zini_app/presentation/state_holders/home_page_controller.dart';
 import 'package:zini_app/presentation/utility/app_colors.dart';
+import 'package:zini_app/presentation/utility/constants.dart';
 
-class HomePage extends StatelessWidget {
+class HomePage extends StatefulWidget {
   const HomePage({super.key});
+
+  @override
+  State<HomePage> createState() => _HomePageState();
+}
+
+class _HomePageState extends State<HomePage> {
+  @override
+  void initState() {
+    super.initState();
+    WidgetsFlutterBinding.ensureInitialized().addPostFrameCallback(
+      (timeStamp) async => await _initialSetup(),
+    );
+  }
+
+  Future<void> _initialSetup() async {
+    SharedPreferences sharedPreferences = await SharedPreferences.getInstance();
+    bool currentState =
+        sharedPreferences.getBool(Constants.isSmsServiceActiveKey) ?? false;
+
+    Get.find<HomePageController>().setSmsSyncActive = currentState;
+  }
 
   @override
   Widget build(BuildContext context) {
