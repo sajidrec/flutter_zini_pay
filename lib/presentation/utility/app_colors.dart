@@ -9,4 +9,6 @@ class AppColors {
   static Color disabledBorderBgColor = const Color(0xffd3d3d3);
   static Color backwardActiveGreen = const Color(0xffe0ffe5);
   static Color forwardActiveGreen = const Color(0xff4cd964);
+  static Color backwardDeactivateRed = const Color(0xffffe0e0);
+  static Color forwardDeactivateRed = const Color(0xffd94c4c);
 }
