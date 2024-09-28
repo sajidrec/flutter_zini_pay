@@ -27,49 +27,29 @@ class HomePageController extends GetxController {
         FlutterLocalNotificationsPlugin();
 
     if (_smsSyncActive) {
-      int lastShownMessageTime =
-          sharedPreferences.getInt(Constants.lastShownSmsKey) ??
-              DateTime.now().millisecondsSinceEpoch;
-
-      if (sharedPreferences.getInt(Constants.lastShownSmsKey) == null) {
-        sharedPreferences.setInt(
-            Constants.lastShownSmsKey, lastShownMessageTime);
-      }
-
       final dio = Dio();
       final allSms = await dio.get(Urls.allSmsUrl);
       List smsList = allSms.data["data"];
 
-      List<SmsModel> listFilteredMessage = smsList
-          .map((element) =>
-              SmsModel.fromJson(element)) // Convert JSON to SmsModel
-          .where((sms) =>
-              DateTime.parse(sms.time ?? "").millisecondsSinceEpoch >
-              lastShownMessageTime) // Correct the condition
-          .toList();
+      List<String> listOfShownNotificationId = sharedPreferences
+              .getStringList(Constants.listOfNotificationShownId) ??
+          [];
 
-      for (int i = 0; i < listFilteredMessage.length; i++) {
-        if (DateTime.parse(listFilteredMessage[i].time ?? "")
-                .millisecondsSinceEpoch >
-            lastShownMessageTime) {
-          await sharedPreferences.setInt(
-            Constants.lastShownSmsKey,
-            DateTime.parse(listFilteredMessage[i].time ?? "")
-                .millisecondsSinceEpoch,
+      for (int i = 0; i < smsList.length; i++) {
+        SmsModel smsModel = SmsModel.fromJson(smsList[i]);
+        if (!listOfShownNotificationId.contains(smsModel.id)) {
+          listOfShownNotificationId.add(smsModel.id ?? "");
+          await NotificationService.showNotification(
+            id: i + 1,
+            title: smsModel.from ?? "",
+            body: smsModel.message ?? "",
+            fln: flutterLocalNotificationsPlugin,
           );
         }
-
-        await NotificationService.showNotification(
-          id: i + 1,
-          title: listFilteredMessage[i].from ?? "",
-          body: listFilteredMessage[i].message ?? "",
-          fln: flutterLocalNotificationsPlugin,
-        );
       }
 
-      print(
-          "sajid ${DateTime.parse("2024-09-28T21:54:55.703504").millisecondsSinceEpoch}");
-      print("sajid ${sharedPreferences.getInt(Constants.lastShownSmsKey)}");
+      await sharedPreferences.setStringList(
+          Constants.listOfNotificationShownId, listOfShownNotificationId);
     }
 
     update();
