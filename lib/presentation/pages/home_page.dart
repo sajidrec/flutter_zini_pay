@@ -1,10 +1,13 @@
 import 'dart:math';
 import 'package:flutter/material.dart';
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:get/get.dart';
+import 'package:permission_handler/permission_handler.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:zini_app/presentation/state_holders/home_page_controller.dart';
 import 'package:zini_app/presentation/utility/app_colors.dart';
 import 'package:zini_app/presentation/utility/constants.dart';
+import 'package:zini_app/services/notification_service.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -14,6 +17,9 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
+  FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
+      FlutterLocalNotificationsPlugin();
+
   @override
   void initState() {
     super.initState();
@@ -28,6 +34,12 @@ class _HomePageState extends State<HomePage> {
         sharedPreferences.getBool(Constants.isSmsServiceActiveKey) ?? false;
 
     Get.find<HomePageController>().setSmsSyncActive = currentState;
+
+    if (await Permission.notification.isDenied) {
+      await Permission.notification.request();
+    }
+
+    await NotificationService.initialize(flutterLocalNotificationsPlugin);
   }
 
   @override
@@ -76,7 +88,9 @@ class _HomePageState extends State<HomePage> {
       child: GetBuilder<HomePageController>(builder: (homePageController) {
         return ElevatedButton(
           onPressed: () async {
-            await homePageController.startStopSmsSync();
+            await homePageController.startStopSmsSync(
+              flutterLocalNotificationsPlugin: flutterLocalNotificationsPlugin,
+            );
           },
           style: ButtonStyle(
             shape: WidgetStatePropertyAll(
