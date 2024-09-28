@@ -22,14 +22,18 @@ class NotificationService {
     required String body,
     var payload,
     required FlutterLocalNotificationsPlugin fln,
+    bool persistence = false,
   }) async {
     AndroidNotificationDetails androidPlatformChannelSpecifics =
-        const AndroidNotificationDetails(
+        AndroidNotificationDetails(
       '2',
       'channel_name',
       playSound: true,
       importance: Importance.max,
       priority: Priority.high,
+      autoCancel: false,
+      ongoing: persistence,
+      enableVibration: true,
     );
 
     var not = NotificationDetails(

@@ -17,9 +17,6 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
-  FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
-      FlutterLocalNotificationsPlugin();
-
   @override
   void initState() {
     super.initState();
@@ -38,8 +35,6 @@ class _HomePageState extends State<HomePage> {
     if (await Permission.notification.isDenied) {
       await Permission.notification.request();
     }
-
-    await NotificationService.initialize(flutterLocalNotificationsPlugin);
   }
 
   @override
@@ -88,9 +83,7 @@ class _HomePageState extends State<HomePage> {
       child: GetBuilder<HomePageController>(builder: (homePageController) {
         return ElevatedButton(
           onPressed: () async {
-            await homePageController.startStopSmsSync(
-              flutterLocalNotificationsPlugin: flutterLocalNotificationsPlugin,
-            );
+            await homePageController.startStopSmsSync();
           },
           style: ButtonStyle(
             shape: WidgetStatePropertyAll(

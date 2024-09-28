@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:get/get.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:zini_app/controller_binder.dart';
@@ -7,6 +8,7 @@ import 'package:zini_app/presentation/pages/loading_page.dart';
 import 'package:zini_app/presentation/pages/login_page.dart';
 import 'package:zini_app/presentation/utility/app_colors.dart';
 import 'package:zini_app/presentation/utility/constants.dart';
+import 'package:zini_app/services/notification_service.dart';
 
 class ZiniApp extends StatefulWidget {
   const ZiniApp({super.key});
@@ -17,6 +19,19 @@ class ZiniApp extends StatefulWidget {
 
 class _ZiniAppState extends State<ZiniApp> {
   Future<void> _moveToNextPage() async {
+    FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
+        FlutterLocalNotificationsPlugin();
+
+    await NotificationService.initialize(flutterLocalNotificationsPlugin);
+
+    await NotificationService.showNotification(
+      id: 0,
+      title: "Zini",
+      body: "App is running",
+      fln: flutterLocalNotificationsPlugin,
+      persistence: true,
+    );
+
     SharedPreferences sharedPreferences = await SharedPreferences.getInstance();
     if (sharedPreferences.getBool(Constants.isLoggedInKey) ?? false) {
       Get.offAll(() => const HomePage());

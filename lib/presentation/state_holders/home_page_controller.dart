@@ -14,21 +14,10 @@ class HomePageController extends GetxController {
 
   bool get smsSyncActive => _smsSyncActive;
 
-  Future<void> startStopSmsSync({
-    required FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin,
-  }) async {
+  Future<void> startStopSmsSync() async {
     _smsSyncActive = !_smsSyncActive;
     SharedPreferences sharedPreferences = await SharedPreferences.getInstance();
     sharedPreferences.setBool(Constants.isSmsServiceActiveKey, _smsSyncActive);
-
-    if (_smsSyncActive) {
-      await NotificationService.showNotification(
-        id: 1,
-        title: "zini 1",
-        body: "App is running",
-        fln: flutterLocalNotificationsPlugin,
-      );
-    }
 
     update();
   }
