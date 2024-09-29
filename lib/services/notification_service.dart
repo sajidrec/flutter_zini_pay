@@ -4,9 +4,9 @@ class NotificationService {
   static Future initialize(
     FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin,
   ) async {
-    var androidInitialize = AndroidInitializationSettings('mipmap/ic_launcher');
+    var androidInitialize = const AndroidInitializationSettings('mipmap/ic_launcher');
 
-    var iosInitialize = DarwinInitializationSettings();
+    var iosInitialize = const DarwinInitializationSettings();
 
     var initializationSettings = InitializationSettings(
       android: androidInitialize,
@@ -38,7 +38,7 @@ class NotificationService {
 
     var not = NotificationDetails(
         android: androidPlatformChannelSpecifics,
-        iOS: DarwinNotificationDetails());
+        iOS: const DarwinNotificationDetails());
     await fln.show(id, title, body, not);
   }
 }

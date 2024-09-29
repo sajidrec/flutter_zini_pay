@@ -1,13 +1,10 @@
 import 'dart:math';
 import 'package:flutter/material.dart';
-import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:get/get.dart';
-import 'package:permission_handler/permission_handler.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:zini_app/presentation/state_holders/home_page_controller.dart';
 import 'package:zini_app/presentation/utility/app_colors.dart';
 import 'package:zini_app/presentation/utility/constants.dart';
-import 'package:zini_app/services/notification_service.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});

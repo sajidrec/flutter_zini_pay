@@ -2,6 +2,7 @@
 /// message : "Message after reconnection"
 /// from : "+1234567890"
 /// time : "2024-09-28T21:54:55.703504"
+library;
 
 class SmsModel {
   SmsModel({
