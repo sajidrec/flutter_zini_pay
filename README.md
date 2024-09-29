@@ -8,5 +8,5 @@ SKILL ASSESSMENT TASK
 
 # Installation guide
 
-run this command 
+run this command ->  
   flutter pub get
