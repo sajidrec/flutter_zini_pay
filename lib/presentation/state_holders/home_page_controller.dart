@@ -31,36 +31,44 @@ class HomePageController extends GetxController {
     if (_smsSyncActive) {
       _timer = Timer.periodic(
         const Duration(seconds: 5),
-        (timer) async {
-          final dio = Dio();
-          final allSms = await dio.get(Urls.allSmsUrl);
-          List smsList = allSms.data["data"];
-
-          List<String> listOfShownNotificationId = sharedPreferences
-                  .getStringList(Constants.listOfNotificationShownId) ??
-              [];
-
-          for (int i = 0; i < smsList.length; i++) {
-            SmsModel smsModel = SmsModel.fromJson(smsList[i]);
-            if (!listOfShownNotificationId.contains(smsModel.id)) {
-              listOfShownNotificationId.add(smsModel.id ?? "");
-              await NotificationService.showNotification(
-                id: i + 1,
-                title: smsModel.from ?? "",
-                body: smsModel.message ?? "",
-                fln: flutterLocalNotificationsPlugin,
-              );
-            }
-          }
-
-          await sharedPreferences.setStringList(
-              Constants.listOfNotificationShownId, listOfShownNotificationId);
-        },
+        (timer) async => _getSms(
+          flutterLocalNotificationsPlugin: flutterLocalNotificationsPlugin,
+        ),
       );
     } else {
       _timer?.cancel();
     }
 
     update();
+  }
+
+  Future<void> _getSms({
+    required FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin,
+  }) async {
+    SharedPreferences sharedPreferences = await SharedPreferences.getInstance();
+
+    final dio = Dio();
+    final allSms = await dio.get(Urls.allSmsUrl);
+    List smsList = allSms.data["data"];
+
+    List<String> listOfShownNotificationId =
+        sharedPreferences.getStringList(Constants.listOfNotificationShownId) ??
+            [];
+
+    for (int i = 0; i < smsList.length; i++) {
+      SmsModel smsModel = SmsModel.fromJson(smsList[i]);
+      if (!listOfShownNotificationId.contains(smsModel.id)) {
+        listOfShownNotificationId.add(smsModel.id ?? "");
+        await NotificationService.showNotification(
+          id: i + 1,
+          title: smsModel.from ?? "",
+          body: smsModel.message ?? "",
+          fln: flutterLocalNotificationsPlugin,
+        );
+      }
+    }
+
+    await sharedPreferences.setStringList(
+        Constants.listOfNotificationShownId, listOfShownNotificationId);
   }
 }
