@@ -18,7 +18,7 @@ Future<void> startServe(ServiceInstance service) async {
   await NotificationService.initialize(flutterLocalNotificationsPlugin);
   await NotificationService.showNotification(
     id: 9999987,
-    title: "ZINI APP",
+    title: "ZINI PAY",
     body: "Running",
     fln: flutterLocalNotificationsPlugin,
     persistence: true,
