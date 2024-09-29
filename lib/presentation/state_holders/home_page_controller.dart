@@ -1,3 +1,4 @@
+import 'dart:async';
 
 import 'package:dio/dio.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
@@ -18,6 +19,8 @@ class HomePageController extends GetxController {
 
   bool get smsSyncActive => _smsSyncActive;
 
+  Timer? _timer;
+
   Future<void> startStopSmsSync() async {
     _smsSyncActive = !_smsSyncActive;
     SharedPreferences sharedPreferences = await SharedPreferences.getInstance();
@@ -26,29 +29,36 @@ class HomePageController extends GetxController {
         FlutterLocalNotificationsPlugin();
 
     if (_smsSyncActive) {
-      final dio = Dio();
-      final allSms = await dio.get(Urls.allSmsUrl);
-      List smsList = allSms.data["data"];
+      _timer = Timer.periodic(
+        const Duration(seconds: 5),
+        (timer) async {
+          final dio = Dio();
+          final allSms = await dio.get(Urls.allSmsUrl);
+          List smsList = allSms.data["data"];
 
-      List<String> listOfShownNotificationId = sharedPreferences
-              .getStringList(Constants.listOfNotificationShownId) ??
-          [];
+          List<String> listOfShownNotificationId = sharedPreferences
+                  .getStringList(Constants.listOfNotificationShownId) ??
+              [];
 
-      for (int i = 0; i < smsList.length; i++) {
-        SmsModel smsModel = SmsModel.fromJson(smsList[i]);
-        if (!listOfShownNotificationId.contains(smsModel.id)) {
-          listOfShownNotificationId.add(smsModel.id ?? "");
-          await NotificationService.showNotification(
-            id: i + 1,
-            title: smsModel.from ?? "",
-            body: smsModel.message ?? "",
-            fln: flutterLocalNotificationsPlugin,
-          );
-        }
-      }
+          for (int i = 0; i < smsList.length; i++) {
+            SmsModel smsModel = SmsModel.fromJson(smsList[i]);
+            if (!listOfShownNotificationId.contains(smsModel.id)) {
+              listOfShownNotificationId.add(smsModel.id ?? "");
+              await NotificationService.showNotification(
+                id: i + 1,
+                title: smsModel.from ?? "",
+                body: smsModel.message ?? "",
+                fln: flutterLocalNotificationsPlugin,
+              );
+            }
+          }
 
-      await sharedPreferences.setStringList(
-          Constants.listOfNotificationShownId, listOfShownNotificationId);
+          await sharedPreferences.setStringList(
+              Constants.listOfNotificationShownId, listOfShownNotificationId);
+        },
+      );
+    } else {
+      _timer?.cancel();
     }
 
     update();
