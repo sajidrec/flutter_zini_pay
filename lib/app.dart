@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:get/get.dart';
+import 'package:permission_handler/permission_handler.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:zini_app/controller_binder.dart';
 import 'package:zini_app/presentation/pages/home_page.dart';
@@ -19,6 +20,10 @@ class ZiniApp extends StatefulWidget {
 
 class _ZiniAppState extends State<ZiniApp> {
   Future<void> _moveToNextPage() async {
+    if (await Permission.notification.isDenied) {
+      await Permission.notification.request();
+    }
+
     FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
         FlutterLocalNotificationsPlugin();
 

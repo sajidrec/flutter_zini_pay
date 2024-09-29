@@ -32,9 +32,6 @@ class _HomePageState extends State<HomePage> {
 
     Get.find<HomePageController>().setSmsSyncActive = currentState;
 
-    if (await Permission.notification.isDenied) {
-      await Permission.notification.request();
-    }
   }
 
   @override
