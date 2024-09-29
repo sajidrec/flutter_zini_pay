@@ -24,6 +24,10 @@ Future<void> startServe(ServiceInstance service) async {
     persistence: true,
   );
 
+  service.on('stopService').listen((event) {
+    service.stopSelf();
+  });
+
   Timer.periodic(
     const Duration(seconds: 5),
     (timer) async => _getSms(
@@ -72,9 +76,10 @@ class HomePageController extends GetxController {
 
   bool get smsSyncActive => _smsSyncActive;
 
-  Timer? _timer;
-
   Future<void> initializeBackgroundService() async {
+    if (!_smsSyncActive) {
+      return;
+    }
     final service = FlutterBackgroundService();
     await service.configure(
       iosConfiguration: IosConfiguration(),
@@ -91,16 +96,8 @@ class HomePageController extends GetxController {
     _smsSyncActive = !_smsSyncActive;
     SharedPreferences sharedPreferences = await SharedPreferences.getInstance();
     sharedPreferences.setBool(Constants.isSmsServiceActiveKey, _smsSyncActive);
-    FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
-        FlutterLocalNotificationsPlugin();
 
     if (_smsSyncActive) {
-      // _timer = Timer.periodic(
-      //   const Duration(seconds: 5),
-      //   (timer) async => _getSms(
-      //     flutterLocalNotificationsPlugin: flutterLocalNotificationsPlugin,
-      //   ),
-      // );
       final service = FlutterBackgroundService();
       await service.configure(
         iosConfiguration: IosConfiguration(),
@@ -110,8 +107,17 @@ class HomePageController extends GetxController {
           autoStart: true,
         ),
       );
+
+      bool isRunning = await service.isRunning();
+      if (!isRunning) {
+        await initializeBackgroundService();
+      }
     } else {
-      // _timer?.cancel();
+      final service = FlutterBackgroundService();
+      bool isRunning = await service.isRunning();
+      if (isRunning) {
+        service.invoke("stopService");
+      } else {}
     }
 
     update();
