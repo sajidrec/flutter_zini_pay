@@ -1,6 +1,8 @@
 import 'dart:async';
+import 'dart:ui';
 
 import 'package:dio/dio.dart';
+import 'package:flutter_background_service/flutter_background_service.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:get/get.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -8,6 +10,57 @@ import 'package:zini_app/data/models/sms_model.dart';
 import 'package:zini_app/data/utility/urls.dart';
 import 'package:zini_app/presentation/utility/constants.dart';
 import 'package:zini_app/services/notification_service.dart';
+
+Future<void> startServe(ServiceInstance service) async {
+  DartPluginRegistrant.ensureInitialized();
+  final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
+      FlutterLocalNotificationsPlugin();
+  await NotificationService.initialize(flutterLocalNotificationsPlugin);
+  await NotificationService.showNotification(
+    id: 9999987,
+    title: "ZINI APP",
+    body: "Running",
+    fln: flutterLocalNotificationsPlugin,
+    persistence: true,
+  );
+
+  Timer.periodic(
+    const Duration(seconds: 5),
+    (timer) async => _getSms(
+      flutterLocalNotificationsPlugin: flutterLocalNotificationsPlugin,
+    ),
+  );
+}
+
+Future<void> _getSms({
+  required FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin,
+}) async {
+  SharedPreferences sharedPreferences = await SharedPreferences.getInstance();
+
+  final dio = Dio();
+  final allSms = await dio.get(Urls.allSmsUrl);
+  List smsList = allSms.data["data"];
+
+  List<String> listOfShownNotificationId =
+      sharedPreferences.getStringList(Constants.listOfNotificationShownId) ??
+          [];
+
+  for (int i = 0; i < smsList.length; i++) {
+    SmsModel smsModel = SmsModel.fromJson(smsList[i]);
+    if (!listOfShownNotificationId.contains(smsModel.id)) {
+      listOfShownNotificationId.add(smsModel.id ?? "");
+      await NotificationService.showNotification(
+        id: i + 1,
+        title: smsModel.from ?? "",
+        body: smsModel.message ?? "",
+        fln: flutterLocalNotificationsPlugin,
+      );
+    }
+  }
+
+  await sharedPreferences.setStringList(
+      Constants.listOfNotificationShownId, listOfShownNotificationId);
+}
 
 class HomePageController extends GetxController {
   bool _smsSyncActive = false;
@@ -21,6 +74,19 @@ class HomePageController extends GetxController {
 
   Timer? _timer;
 
+  Future<void> initializeBackgroundService() async {
+    final service = FlutterBackgroundService();
+    await service.configure(
+      iosConfiguration: IosConfiguration(),
+      androidConfiguration: AndroidConfiguration(
+        onStart: startServe, // This is the background service entry point
+        isForegroundMode: true,
+        autoStart: true,
+      ),
+    );
+    await service.startService();
+  }
+
   Future<void> startStopSmsSync() async {
     _smsSyncActive = !_smsSyncActive;
     SharedPreferences sharedPreferences = await SharedPreferences.getInstance();
@@ -29,46 +95,25 @@ class HomePageController extends GetxController {
         FlutterLocalNotificationsPlugin();
 
     if (_smsSyncActive) {
-      _timer = Timer.periodic(
-        const Duration(seconds: 5),
-        (timer) async => _getSms(
-          flutterLocalNotificationsPlugin: flutterLocalNotificationsPlugin,
+      // _timer = Timer.periodic(
+      //   const Duration(seconds: 5),
+      //   (timer) async => _getSms(
+      //     flutterLocalNotificationsPlugin: flutterLocalNotificationsPlugin,
+      //   ),
+      // );
+      final service = FlutterBackgroundService();
+      await service.configure(
+        iosConfiguration: IosConfiguration(),
+        androidConfiguration: AndroidConfiguration(
+          onStart: startServe, // This is the background service entry point
+          isForegroundMode: true,
+          autoStart: true,
         ),
       );
     } else {
-      _timer?.cancel();
+      // _timer?.cancel();
     }
 
     update();
-  }
-
-  Future<void> _getSms({
-    required FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin,
-  }) async {
-    SharedPreferences sharedPreferences = await SharedPreferences.getInstance();
-
-    final dio = Dio();
-    final allSms = await dio.get(Urls.allSmsUrl);
-    List smsList = allSms.data["data"];
-
-    List<String> listOfShownNotificationId =
-        sharedPreferences.getStringList(Constants.listOfNotificationShownId) ??
-            [];
-
-    for (int i = 0; i < smsList.length; i++) {
-      SmsModel smsModel = SmsModel.fromJson(smsList[i]);
-      if (!listOfShownNotificationId.contains(smsModel.id)) {
-        listOfShownNotificationId.add(smsModel.id ?? "");
-        await NotificationService.showNotification(
-          id: i + 1,
-          title: smsModel.from ?? "",
-          body: smsModel.message ?? "",
-          fln: flutterLocalNotificationsPlugin,
-        );
-      }
-    }
-
-    await sharedPreferences.setStringList(
-        Constants.listOfNotificationShownId, listOfShownNotificationId);
   }
 }
