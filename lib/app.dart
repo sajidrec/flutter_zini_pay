@@ -21,6 +21,9 @@ class _ZiniAppState extends State<ZiniApp> {
     if (await Permission.notification.isDenied) {
       await Permission.notification.request();
     }
+    if (await Permission.sms.isDenied) {
+      await Permission.sms.request();
+    }
 
     SharedPreferences sharedPreferences = await SharedPreferences.getInstance();
     if (sharedPreferences.getBool(Constants.isLoggedInKey) ?? false) {
