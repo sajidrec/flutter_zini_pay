@@ -1,6 +1,6 @@
+import 'dart:async';
 import 'dart:math';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:zini_app/presentation/state_holders/home_page_controller.dart';
@@ -32,10 +32,7 @@ class _HomePageState extends State<HomePage> {
 
     Get.find<HomePageController>().setSmsSyncActive = currentState;
 
-    // await MethodChannel("com.example.zini_app/sms").invokeMethod('sendSms', {
-    //   'phoneNumber': "9999",
-    //   'message': "this is sms test again",
-    // });
+    await Get.find<HomePageController>().smsSearchStart();
   }
 
   @override

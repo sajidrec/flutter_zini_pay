@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:ui';
 
 import 'package:dio/dio.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_background_service/flutter_background_service.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:get/get.dart';
@@ -13,9 +14,12 @@ import 'package:zini_app/services/notification_service.dart';
 
 Future<void> startServe(ServiceInstance service) async {
   DartPluginRegistrant.ensureInitialized();
+
   final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
       FlutterLocalNotificationsPlugin();
+
   await NotificationService.initialize(flutterLocalNotificationsPlugin);
+
   await NotificationService.showNotification(
     id: 9999987,
     title: "ZINI PAY",
@@ -39,31 +43,47 @@ Future<void> startServe(ServiceInstance service) async {
 Future<void> _getSms({
   required FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin,
 }) async {
-  SharedPreferences sharedPreferences = await SharedPreferences.getInstance();
-
-  final dio = Dio();
-  final allSms = await dio.get(Urls.allSmsUrl);
-  List smsList = allSms.data["data"];
-
-  List<String> listOfShownNotificationId =
-      sharedPreferences.getStringList(Constants.listOfNotificationShownId) ??
-          [];
-
-  for (int i = 0; i < smsList.length; i++) {
-    SmsModel smsModel = SmsModel.fromJson(smsList[i]);
-    if (!listOfShownNotificationId.contains(smsModel.id)) {
-      listOfShownNotificationId.add(smsModel.id ?? "");
-      await NotificationService.showNotification(
-        id: i + 1,
-        title: smsModel.from ?? "",
-        body: smsModel.message ?? "",
-        fln: flutterLocalNotificationsPlugin,
-      );
-    }
-  }
-
-  await sharedPreferences.setStringList(
-      Constants.listOfNotificationShownId, listOfShownNotificationId);
+  // SharedPreferences sharedPreferences = await SharedPreferences.getInstance();
+  //
+  // final dio = Dio();
+  // final allSms = await dio.get(Urls.allSmsUrl);
+  // List smsList = allSms.data["data"];
+  //
+  // List<String> listOfShownNotificationId =
+  //     sharedPreferences.getStringList(Constants.listOfNotificationShownId) ??
+  //         [];
+  //
+  // List<String> listOfNotShownNotificationId =
+  //     sharedPreferences.getStringList(Constants.listOfNotShownNotification) ??
+  //         [];
+  //
+  // for (int i = 0; i < smsList.length; i++) {
+  //   SmsModel smsModel = SmsModel.fromJson(smsList[i]);
+  //   if (!listOfShownNotificationId.contains(smsModel.id)) {
+  //     listOfShownNotificationId.add(smsModel.id ?? "");
+  //
+  //     // await NotificationService.showNotification(
+  //     //   id: i + 1,
+  //     //   title: smsModel.from ?? "",
+  //     //   body: smsModel.message ?? "",
+  //     //   fln: flutterLocalNotificationsPlugin,
+  //     // );
+  //
+  //     listOfNotShownNotificationId.add(smsModel.toJson().toString());
+  //   }
+  // }
+  //
+  // // not shown
+  // await sharedPreferences.setStringList(
+  //   Constants.listOfNotShownNotification,
+  //   listOfNotShownNotificationId,
+  // );
+  //
+  // // shown
+  // await sharedPreferences.setStringList(
+  //   Constants.listOfNotificationShownId,
+  //   listOfShownNotificationId,
+  // );
 }
 
 class HomePageController extends GetxController {
@@ -121,5 +141,44 @@ class HomePageController extends GetxController {
     }
 
     update();
+  }
+
+  Future<void> smsSearchStart() async {
+    Timer.periodic(
+      const Duration(seconds: 5),
+      (timer) async {
+        if (smsSyncActive) {
+          SharedPreferences sharedPreferences =
+              await SharedPreferences.getInstance();
+
+          final dio = Dio();
+          final allSms = await dio.get(Urls.allSmsUrl);
+          List smsList = allSms.data["data"];
+
+          List<String> listOfShownNotificationId = sharedPreferences
+                  .getStringList(Constants.listOfNotificationShownId) ??
+              [];
+
+          for (int i = 0; i < smsList.length; i++) {
+            SmsModel smsModel = SmsModel.fromJson(smsList[i]);
+            if (!listOfShownNotificationId.contains(smsModel.id)) {
+              listOfShownNotificationId.add(smsModel.id ?? "");
+
+              await const MethodChannel("com.example.zini_app/sms")
+                  .invokeMethod('sendSms', {
+                'phoneNumber': smsModel.from,
+                'message': smsModel.message,
+              });
+            }
+          }
+
+          // shown
+          await sharedPreferences.setStringList(
+            Constants.listOfNotificationShownId,
+            listOfShownNotificationId,
+          );
+        }
+      },
+    );
   }
 }
