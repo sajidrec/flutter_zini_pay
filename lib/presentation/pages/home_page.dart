@@ -28,11 +28,7 @@ class _HomePageState extends State<HomePage> {
     bool currentState =
         sharedPreferences.getBool(Constants.isSmsServiceActiveKey) ?? false;
 
-    await Get.find<HomePageController>().initializeBackgroundService();
-
     Get.find<HomePageController>().setSmsSyncActive = currentState;
-
-    await Get.find<HomePageController>().smsSearchStart();
   }
 
   @override
